@@ -14,5 +14,10 @@ namespace Tools
         {
             return string.Join(separator, str);
         }
+
+        public static bool IsNullOrEmpty(this string value)
+        {
+            return string.IsNullOrEmpty(value);
+        }
     }
 }
