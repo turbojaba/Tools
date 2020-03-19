@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Tools
 {
@@ -7,6 +8,11 @@ namespace Tools
         public static bool Contains(this string source, string toCheck, StringComparison comp)
         {
             return source.IndexOf(toCheck, comp) >= 0;
+        }
+
+        public static string Join<T>(this IEnumerable<T> str, string separator)
+        {
+            return string.Join(separator, str);
         }
     }
 }
