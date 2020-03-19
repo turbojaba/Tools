@@ -14,8 +14,7 @@ namespace Tools
 
         public static string AppNameWithVersion => $"{AppName} v{Version}";
 
-        public static string DefaultLogLayout =
-            "${time}|${level:uppercase=true}|${processid}|${threadid}|${callsite}|${message}";
+        public static string DefaultLogLayout = "${time}|${level:uppercase=true}|${processid}|${threadid}|${callsite}|${message}";
 
         public static LoggingConfiguration DefaultLogConfig(bool entryAssemblyNameAsFileName = true)
         {
@@ -28,6 +27,7 @@ namespace Tools
                 FileName = "logs\\" + appName + "${shortdate}.txt",
                 Layout = layout
             };
+
             var logconsole = new ColoredConsoleTarget("logconsole")
             {
                 Layout = layout
@@ -50,12 +50,20 @@ namespace Tools
         {
             var str = "------ " + AppNameWithVersion +
 #if DEBUG
-                " DEBUG" +
+                      " DEBUG" +
 #else
-                " RELEASE" +
+                      " RELEASE" +
 #endif
                       " ------";
+
             logger.Info(str);
+        }
+
+        public static void Bye(this Logger log, int? exitCode = null)
+        {
+            var exitCodeStr = $". ExitCode: {exitCode}";
+
+            log.Info($"Bye-bye{(exitCode == null ? "" : exitCodeStr)}");
         }
     }
 }

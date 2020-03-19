@@ -8,5 +8,10 @@ namespace Tools
         {
             return source.IndexOf(toCheck, comp) >= 0;
         }
+
+        public static bool IsNullOrEmpty(this string value)
+        {
+            return string.IsNullOrEmpty(value);
+        }
     }
 }
