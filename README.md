@@ -17,3 +17,7 @@
     </Style>
 </Application.Resources>
 ```
+
+```csharp
+private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+```
