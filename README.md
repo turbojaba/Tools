@@ -19,5 +19,5 @@
 ```
 
 ```csharp
-private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+private static readonly NLog.Logger Log = NLog.LogManager.GetCurrentClassLogger();
 ```

@@ -25,9 +25,11 @@ namespace Tools
         // 12 часов
         public static Timer UpdateTimer { get; set; } = new Timer(43_200_000);
 
-        public static Action AppUpdated { get; set; }
+        public delegate void AppUpdateHandler();
 
-        // http://buherpet.tk:9999/updates/{AppName}
+        public static event AppUpdateHandler AppUpdated;
+
+        // http://buherpet.tk:9999/updates/{Helper.AppName}
         public static string UpdateUrl { get; private set; }
 
         public static void MagickInitMethod(string updateUrl)
