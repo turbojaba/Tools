@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
+using System.Timers;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using Squirrel;
 
 namespace Tools
 {
@@ -16,7 +20,89 @@ namespace Tools
 
         public static string DefaultLogLayout = "${time}|${level:uppercase=true}|${processid}|${threadid}|${callsite}|${message}";
 
-        public static LoggingConfiguration DefaultLogConfig(bool entryAssemblyNameAsFileName = true)
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+        // 12 часов
+        public static Timer UpdateTimer { get; set; } = new Timer(43_200_000);
+
+        public static Action AppUpdated { get; set; }
+
+        // http://buherpet.tk:9999/updates/{AppName}
+        public static string UpdateUrl { get; private set; }
+
+        public static void MagickInitMethod(string updateUrl)
+        {
+            var debug = true;
+#if !DEBUG
+            debug = false;
+#endif
+
+            UpdateUrl = updateUrl;
+            var appWillBeUpdated = !UpdateUrl.IsNullOrEmpty();
+            var pathPrefix = !debug && appWillBeUpdated ? "..\\" : "";
+            LogManager.Configuration = DefaultLogConfig(pathPrefix: pathPrefix);
+
+            Log.HelloWorld();
+
+            if (!debug && appWillBeUpdated)
+            {
+                UpdateTimer.Elapsed += UpdateTimerOnElapsed;
+                UpdateTimer.Start();
+                UpdateApp();
+            }
+        }
+
+        private static void UpdateTimerOnElapsed(object sender, ElapsedEventArgs e)
+        {
+            UpdateApp();
+        }
+
+        //Если ЕХЕшник вытащили из аппдаты, то логи будут неправильно писаться и приложение не будет обновляться
+        public static async Task UpdateApp()
+        {
+            Log.Info($"Start");
+
+            if (UpdateUrl.IsNullOrEmpty())
+            {
+                Log.Info($"Ссылка на апдейты не установлена, скип");
+                return;
+            }
+
+            try
+            {
+                Log.Info($"UpdateUrl: {UpdateUrl}");
+                using (var mgr = new UpdateManager(UpdateUrl))
+                {
+                    Log.Info($"CheckForUpdate...");
+                    var updateInfo = await mgr.CheckForUpdate();
+                    Log.Info($"ReleasesToApply.Count: {updateInfo.ReleasesToApply.Count}");
+                    if (updateInfo.ReleasesToApply.Any())
+                    {
+                        Log.Info($"UpdateApp()");
+                        await mgr.UpdateApp(UpdateProgress).ConfigureAwait(false);
+                        Log.Info($"UpdateHelper.AppUpdated?.Invoke()");
+                        AppUpdated?.Invoke();
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e);
+            }
+        }
+
+        private static void UpdateProgress(int obj)
+        {
+            Log.Info($"{obj}");
+        }
+
+        public static void RestartApp()
+        {
+            UpdateManager.RestartApp();
+        }
+
+        public static LoggingConfiguration DefaultLogConfig(bool entryAssemblyNameAsFileName = true, string pathPrefix = "")
         {
             var appName = entryAssemblyNameAsFileName ? $"{AppName}-" : "";
             var layout = DefaultLogLayout;
@@ -24,7 +110,7 @@ namespace Tools
 
             var logfile = new FileTarget("logfile")
             {
-                FileName = "logs\\" + appName + "${shortdate}.txt",
+                FileName = pathPrefix + "logs\\" + appName + "${shortdate}.txt",
                 Layout = layout
             };
 
@@ -38,14 +124,7 @@ namespace Tools
 
             return config;
         }
-
-        public static LoggingConfiguration SetFileNamePrefix(this LoggingConfiguration config, string prefix)
-        {
-            var logFile = config.FindTargetByName<FileTarget>("logfile");
-            logFile.FileName = $"{prefix}{logFile.FileName.ToString().Replace("'", "")}";
-            return config;
-        }
-
+        
         public static void HelloWorld(this Logger logger)
         {
             var str = "------ " + AppNameWithVersion +
