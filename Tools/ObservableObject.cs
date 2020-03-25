@@ -13,8 +13,7 @@ namespace Tools
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        protected virtual bool OnPropertyChanged<T>(ref T backingField, T value,
-            [CallerMemberName] string propertyName = "")
+        protected virtual bool OnPropertyChanged<T>(ref T backingField, T value, [CallerMemberName] string propertyName = "")
         {
             if (EqualityComparer<T>.Default.Equals(backingField, value))
                 return false;

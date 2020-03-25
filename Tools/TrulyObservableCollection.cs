@@ -5,8 +5,7 @@ using System.ComponentModel;
 
 namespace Tools
 {
-    public sealed class TrulyObservableCollection<T> : ObservableCollection<T>
-        where T : INotifyPropertyChanged
+    public sealed class TrulyObservableCollection<T> : ObservableCollection<T> where T : INotifyPropertyChanged
     {
         public TrulyObservableCollection()
         {
@@ -27,7 +26,7 @@ namespace Tools
             {
                 foreach (var item in e.NewItems)
                 {
-                    ((INotifyPropertyChanged)item).PropertyChanged += ItemPropertyChanged;
+                    ((INotifyPropertyChanged) item).PropertyChanged += ItemPropertyChanged;
                 }
             }
 
@@ -35,15 +34,14 @@ namespace Tools
             {
                 foreach (var item in e.OldItems)
                 {
-                    ((INotifyPropertyChanged)item).PropertyChanged -= ItemPropertyChanged;
+                    ((INotifyPropertyChanged) item).PropertyChanged -= ItemPropertyChanged;
                 }
             }
         }
 
         private void ItemPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            var args = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, sender, sender,
-                IndexOf((T)sender));
+            var args = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, sender, sender, IndexOf((T) sender));
             OnCollectionChanged(args);
         }
     }

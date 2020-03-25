@@ -1,8 +1,11 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
+using Newtonsoft.Json;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -32,7 +35,19 @@ namespace Tools
         // http://buherpet.tk:9999/updates/{Helper.AppName}
         public static string UpdateUrl { get; private set; }
 
-        public static void MagickInitMethod(string updateUrl)
+        public static string SettingsPath { get; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\{AppName}\\Settings.json";
+
+        public static DirectoryInfo SettingsFolder => new DirectoryInfo(SettingsPath).Parent;
+
+        public static void CreateSettingsFolderIfNotExist()
+        {
+            if (!SettingsFolder.Exists)
+            {
+                SettingsFolder.Create();
+            }
+        }
+
+        public static void MagickInitMethod(string updateUrl = "")
         {
             var debug = true;
 #if !DEBUG
@@ -99,10 +114,10 @@ namespace Tools
             Log.Info($"{obj}");
         }
 
-        public static void RestartApp()
-        {
-            UpdateManager.RestartApp();
-        }
+        //public static void RestartApp()
+        //{
+        //    UpdateManager.RestartApp();
+        //}
 
         public static LoggingConfiguration DefaultLogConfig(bool entryAssemblyNameAsFileName = true, string pathPrefix = "")
         {
@@ -145,6 +160,50 @@ namespace Tools
             var exitCodeStr = $". ExitCode: {exitCode}";
 
             log.Info($"Bye-bye{(exitCode == null ? "" : exitCodeStr)}");
+        }
+    }
+
+    public abstract class Settings<T> where T : class
+    {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+        [JsonIgnore]
+        public Timer SavingTimer = new Timer(5_000)
+        {
+            AutoReset = false,
+            Enabled = false,
+        };
+
+        public void Save()
+        {
+            var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
+            Log.Info($"settingsJson: {settingsJson}");
+
+            Helper.CreateSettingsFolderIfNotExist();
+
+            File.WriteAllText(Helper.SettingsPath, settingsJson, Encoding.UTF8);
+        }
+
+        public T Load()
+        {
+            if (File.Exists(Helper.SettingsPath))
+            {
+                var settingsJson = File.ReadAllText(Helper.SettingsPath);
+                var settings = JsonConvert.DeserializeObject<T>(settingsJson);
+                return settings;
+            }
+            else
+            {
+                // first run
+                return null;
+            }
+        }
+
+        public void RestartSavingTimer()
+        {
+            Log.Info("Start");
+            SavingTimer.Stop();
+            SavingTimer.Start();
         }
     }
 }
