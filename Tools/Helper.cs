@@ -155,11 +155,13 @@ namespace Tools
             logger.Info(str);
         }
 
-        public static void Bye(this Logger log, int? exitCode = null)
+        public static void Bye(this Logger log, int exitCode)
         {
-            var exitCodeStr = $". ExitCode: {exitCode}";
+            //var exitCodeStr = $". ExitCode: {exitCode}";
 
-            log.Info($"Bye-bye{(exitCode == null ? "" : exitCodeStr)}");
+            //log.Info($"Bye-bye{(exitCode == null ? "" : exitCodeStr)}");
+
+            log.Info($"ExitCode: {exitCode}");
         }
     }
 
@@ -177,7 +179,7 @@ namespace Tools
         public void Save()
         {
             var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
-            Log.Info($"settingsJson: {settingsJson}");
+            //Log.Info($"settingsJson: {settingsJson}");
 
             Helper.CreateSettingsFolderIfNotExist();
 
@@ -201,7 +203,7 @@ namespace Tools
 
         public void RestartSavingTimer()
         {
-            Log.Info("Start");
+            //Log.Info("Start");
             SavingTimer.Stop();
             SavingTimer.Start();
         }
