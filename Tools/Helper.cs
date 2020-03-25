@@ -114,10 +114,10 @@ namespace Tools
             Log.Info($"{obj}");
         }
 
-        //public static void RestartApp()
-        //{
-        //    UpdateManager.RestartApp();
-        //}
+        public static void RestartApp()
+        {
+            UpdateManager.RestartApp();
+        }
 
         public static LoggingConfiguration DefaultLogConfig(bool entryAssemblyNameAsFileName = true, string pathPrefix = "")
         {
