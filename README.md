@@ -21,3 +21,7 @@
 ```csharp
 private static readonly NLog.Logger Log = NLog.LogManager.GetCurrentClassLogger();
 ```
+
+```
+magick convert -background none IMAGE.svg -define icon:auto-resize IMAGE.ico
+```
