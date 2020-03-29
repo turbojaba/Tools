@@ -7,6 +7,8 @@ namespace Tools
 {
     public sealed class TrulyObservableCollection<T> : ObservableCollection<T> where T : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler CollectionItemChanged;
+
         public TrulyObservableCollection()
         {
             CollectionChanged += FullObservableCollectionCollectionChanged;
@@ -41,8 +43,10 @@ namespace Tools
 
         private void ItemPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            var args = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, sender, sender, IndexOf((T) sender));
-            OnCollectionChanged(args);
+            //var args = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, sender, sender, IndexOf((T) sender));
+            //OnCollectionChanged(args);
+            // https://stackoverflow.com/questions/1427471/observablecollection-not-noticing-when-item-in-it-changes-even-with-inotifyprop
+            CollectionItemChanged?.Invoke(sender, e);
         }
     }
 }
