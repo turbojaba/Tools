@@ -25,3 +25,8 @@ private static readonly NLog.Logger Log = NLog.LogManager.GetCurrentClassLogger(
 ```
 magick convert -background none IMAGE.svg -define icon:auto-resize IMAGE.ico
 ```
+
+``` csharp
+//avoid a "object reference not set to an instance of an object@ exception in XAML code while design time
+if (LicenseManager.UsageMode == LicenseUsageMode.Designtime) return;
+```
