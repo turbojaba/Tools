@@ -5,6 +5,7 @@ using System.Windows.Controls;
 
 namespace Tools
 {
+    // https://stackoverflow.com/questions/10097417/how-do-i-create-an-autoscrolling-textbox
     public class TextBoxBehaviour
     {
         static readonly Dictionary<TextBox, Capture> _associations = new Dictionary<TextBox, Capture>();
