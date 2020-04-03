@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Windows.Data;
+using System.Windows.Markup;
 using Newtonsoft.Json;
 using NLog;
 using NLog.Config;
@@ -163,49 +168,96 @@ namespace Tools
 
             log.Info($"ExitCode: {exitCode}");
         }
+
+        public static string Description(this Enum value)
+        {
+            var attributes = value.GetType().GetField(value.ToString()).GetCustomAttributes(typeof(DescriptionAttribute), false);
+            if (attributes.Any())
+                return (attributes.First() as DescriptionAttribute).Description;
+
+            // If no description is found, the least we can do is replace underscores with spaces
+            // You can add your own custom default formatting logic here
+            //var ti = CultureInfo.CurrentCulture.TextInfo;
+            //return ti.ToTitleCase(ti.ToLower(value.ToString().Replace("_", " ")));
+            return value.ToString();
+        }
+
+        public static IEnumerable<ValueDescription> GetAllValuesAndDescriptions(Type t)
+        {
+            if (!t.IsEnum)
+                throw new ArgumentException($"{nameof(t)} must be an enum type");
+
+            return Enum.GetValues(t).Cast<Enum>().Select((e) => new ValueDescription { Value = e, Description = e.Description() }).ToList();
+        }
     }
 
-    public abstract class Settings<T> where T : class
+    [ValueConversion(typeof(Enum), typeof(IEnumerable<ValueDescription>))]
+    public class EnumToCollectionConverter : MarkupExtension, IValueConverter
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
-        [JsonIgnore]
-        public Timer SavingTimer = new Timer(5_000)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            AutoReset = false,
-            Enabled = false,
-        };
-
-        public void Save()
-        {
-            var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
-            //Log.Info($"settingsJson: {settingsJson}");
-
-            Helper.CreateSettingsFolderIfNotExist();
-
-            File.WriteAllText(Helper.SettingsPath, settingsJson, Encoding.UTF8);
+            return Helper.GetAllValuesAndDescriptions(value.GetType());
         }
 
-        public T Load()
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (File.Exists(Helper.SettingsPath))
-            {
-                var settingsJson = File.ReadAllText(Helper.SettingsPath);
-                var settings = JsonConvert.DeserializeObject<T>(settingsJson);
-                return settings;
-            }
-            else
-            {
-                // first run
-                return null;
-            }
+            return null;
         }
 
-        public void RestartSavingTimer()
+        public override object ProvideValue(IServiceProvider serviceProvider)
         {
-            //Log.Info("Start");
-            SavingTimer.Stop();
-            SavingTimer.Start();
+            return this;
         }
     }
+
+    public class ValueDescription
+    {
+        public Enum Value { get; set; }
+
+        public string Description { get; set; }
+    }
+
+    //public abstract class Settings<T> where T : class
+    //{
+    //    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+    //    [JsonIgnore]
+    //    public Timer SavingTimer = new Timer(5_000)
+    //    {
+    //        AutoReset = false,
+    //        Enabled = false,
+    //    };
+
+    //    public void Save()
+    //    {
+    //        var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
+    //        //Log.Info($"settingsJson: {settingsJson}");
+
+    //        Helper.CreateSettingsFolderIfNotExist();
+
+    //        File.WriteAllText(Helper.SettingsPath, settingsJson, Encoding.UTF8);
+    //    }
+
+    //    public T Load()
+    //    {
+    //        if (File.Exists(Helper.SettingsPath))
+    //        {
+    //            var settingsJson = File.ReadAllText(Helper.SettingsPath);
+    //            var settings = JsonConvert.DeserializeObject<T>(settingsJson);
+    //            return settings;
+    //        }
+    //        else
+    //        {
+    //            // first run
+    //            return null;
+    //        }
+    //    }
+
+    //    public void RestartSavingTimer()
+    //    {
+    //        //Log.Info("Start");
+    //        SavingTimer.Stop();
+    //        SavingTimer.Start();
+    //    }
+    //}
 }
