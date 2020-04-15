@@ -1,7 +1,10 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Threading;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using Prometheus;
 
 namespace Tools.Tests
 {
@@ -36,6 +39,21 @@ namespace Tools.Tests
             //Settings.Keks.Add(new Kek { Name = "test1" });
             //var q = JsonConvert.SerializeObject(Settings, Formatting.Indented);
             //Log.Info($"\r\n{q}");
+        }
+
+        private static readonly Counter TickTock = Metrics.CreateCounter("sampleapp_ticks_total", "Just keeps on ticking");
+
+        [Test]
+        public void Test2()
+        {
+            var server = new MetricServer(hostname: "localhost", port: 9118);
+            server.Start();
+
+            while (true)
+            {
+                TickTock.Inc();
+                Thread.Sleep(100);
+            }
         }
     }
 }

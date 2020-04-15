@@ -169,6 +169,7 @@ namespace Tools
             log.Info($"ExitCode: {exitCode}");
         }
 
+        // https://stackoverflow.com/questions/6145888/how-to-bind-an-enum-to-a-combobox-control-in-wpf
         public static string Description(this Enum value)
         {
             var attributes = value.GetType().GetField(value.ToString()).GetCustomAttributes(typeof(DescriptionAttribute), false);
